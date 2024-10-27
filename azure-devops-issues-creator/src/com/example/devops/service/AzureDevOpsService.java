@@ -29,10 +29,10 @@ public class AzureDevOpsService {
 	}
 
 	public int createWorkItem(WorkItem workItem, Integer parentId) throws IOException, WorkItemCreationException {
-		String url = String.format("%s/$%s?%s", AzureConfig.BASE_URL, workItem.getType(), AzureConfig.API_VERSION);
+		String url = String.format("%s/$%s?%s", AzureConfig.getBaseUrl(), workItem.getType(), AzureConfig.API_VERSION);
 		HttpPost post = new HttpPost(url);
 		post.setHeader("Content-Type", "application/json-patch+json");
-		post.setHeader("Authorization", "Basic " + JsonUtil.encodeBase64("", AzureConfig.PERSONAL_ACCESS_TOKEN));
+		post.setHeader("Authorization", "Basic " + JsonUtil.encodeBase64("", AzureConfig.getPersonalAccessToken()));
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {

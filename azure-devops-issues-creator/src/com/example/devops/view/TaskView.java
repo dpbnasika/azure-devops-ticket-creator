@@ -32,7 +32,7 @@ public class TaskView {
 
     private void initializeUI() {
         taskFrame = new JFrame("Add Phone");
-        taskFrame.setSize(400, 300);
+        taskFrame.setSize(600, 400);
         taskFrame.setLayout(null);
 
         JLabel taskLabel = new JLabel("Phone Name:");

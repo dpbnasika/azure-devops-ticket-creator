@@ -79,7 +79,7 @@ public class JsonUtil {
             put("path", "/relations/-");
             put("value", new HashMap<String, Object>() {{
                 put("rel", "System.LinkTypes.Hierarchy-Reverse");
-                put("url", "https://dev.azure.com/" + AzureConfig.ORGANIZATION + "/" + AzureConfig.PROJECT + "/_apis/wit/workitems/" + parentId);
+                put("url", "https://dev.azure.com/" + AzureConfig.getOrganization() + "/" + AzureConfig.getProject() + "/_apis/wit/workitems/" + parentId);
             }});
         }};
     }

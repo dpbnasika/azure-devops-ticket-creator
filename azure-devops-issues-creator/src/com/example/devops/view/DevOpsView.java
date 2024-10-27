@@ -21,6 +21,11 @@ import javax.swing.JProgressBar;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+
 import org.jdatepicker.impl.*;
 
 import com.example.devops.exceptions.WorkItemCreationException;
@@ -28,11 +33,17 @@ import com.example.devops.model.Epic;
 import com.example.devops.model.Task;
 import com.example.devops.util.DateLabelFormatter;
 import com.example.devops.viewmodel.DevOpsViewModel;
+import com.example.devops.config.AzureConfig;
 
 public class DevOpsView {
     private final DevOpsViewModel viewModel;
     private List<Task> tasks = new ArrayList<>();
     private JProgressBar progressBar; // Progress bar declaration
+
+    // Variables for session storage
+    private String organization;
+    private String project;
+    private String personalAccessToken;
 
     public DevOpsView() {
         viewModel = new DevOpsViewModel();
@@ -42,22 +53,30 @@ public class DevOpsView {
     private void createUI() {
         JFrame frame = new JFrame("Ticket Creation Manager");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(600, 500);
+        frame.setSize(800, 600);
         frame.setMinimumSize(new Dimension(600, 400));
         frame.setMaximumSize(new Dimension(800, 600));
         frame.setLayout(new GridBagLayout());
 
         // Add Menu Bar
         JMenuBar menuBar = new JMenuBar();
+        
+        // "Options" menu for exiting
         JMenu optionsMenu = new JMenu("Options");
         JMenuItem exitItem = new JMenuItem("Exit");
         exitItem.addActionListener(e -> System.exit(0));
         optionsMenu.add(exitItem);
         menuBar.add(optionsMenu);
+        
+        // "Setup" button for user configuration
+        JButton setupButton = new JButton("Setup");
+        setupButton.addActionListener(e -> openSetupDialog(frame));
+        menuBar.add(setupButton);
+        
         frame.setJMenuBar(menuBar);
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.insets = new Insets(20, 20, 20, 20);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         // Header label
@@ -120,15 +139,9 @@ public class DevOpsView {
         frame.add(commentLabel, gbc);
         
         JComboBox<String> taskDropdown = new JComboBox<>(new String[]{"To Do", "Samsung", "Oppo"});
-        //taskDropdown.setBounds(120, 20, 200, 25);
         gbc.gridx = 1;
         gbc.gridy = 5;
         frame.add(taskDropdown, gbc);
-
-        /*JTextField commentField = new JTextField();
-        gbc.gridx = 1;
-        gbc.gridy = 5;
-        frame.add(commentField, gbc);*/
         
         JLabel runsLabel = new JLabel("Number of Runs:");
         gbc.gridx = 0;
@@ -202,7 +215,6 @@ public class DevOpsView {
                 @Override
                 protected Void doInBackground() throws Exception {
                     try {
-                        // Call the method and check the result
                         Boolean result = viewModel.createEpicWithTasksAndIssues(epic);
                         if (!result) {
                             throw new WorkItemCreationException("Creation failed due to server error.");
@@ -231,11 +243,59 @@ public class DevOpsView {
             worker.execute(); // Start the background process
         });
 
-        // Final Frame settings
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
 
+    // Method to create and display the setup dialog
+    private void openSetupDialog(JFrame parentFrame) {
+        JDialog setupDialog = new JDialog(parentFrame, "Setup Configuration", true);
+        setupDialog.setSize(600, 400);
+        setupDialog.setLayout(new BoxLayout(setupDialog.getContentPane(), BoxLayout.Y_AXIS));
+
+        // Panel for organization field
+        JPanel organizationPanel = new JPanel();
+        organizationPanel.setBorder(BorderFactory.createTitledBorder("Organization"));
+        JTextField organizationField = new JTextField(20);
+        organizationPanel.add(organizationField);
+        setupDialog.add(organizationPanel);
+
+        // Panel for project field
+        JPanel projectPanel = new JPanel();
+        projectPanel.setBorder(BorderFactory.createTitledBorder("Project"));
+        JTextField projectField = new JTextField(20);
+        projectPanel.add(projectField);
+        setupDialog.add(projectPanel);
+
+        // Panel for personal access token field
+        JPanel tokenPanel = new JPanel();
+        tokenPanel.setBorder(BorderFactory.createTitledBorder("Personal Access Token"));
+        JTextField tokenField = new JTextField(20);
+        tokenPanel.add(tokenField);
+        setupDialog.add(tokenPanel);
+
+        // Save button to capture and save the input data
+        JButton saveButton = new JButton("Save");
+        saveButton.addActionListener(e -> {
+            organization = organizationField.getText();
+            project = projectField.getText();
+            personalAccessToken = tokenField.getText();
+
+            // Save the input values to AzureConfig via setters
+            AzureConfig.setOrganization(organization);
+            AzureConfig.setProject(project);
+            AzureConfig.setPersonalAccessToken(personalAccessToken);
+
+            JOptionPane.showMessageDialog(setupDialog, "Configuration saved successfully!");
+            setupDialog.dispose(); // Close the dialog
+        });
+
+        setupDialog.add(saveButton);
+        setupDialog.setLocationRelativeTo(parentFrame);
+        setupDialog.setVisible(true);
+    }
+
+    // Utility method for creating a date picker
     private JDatePickerImpl createDatePicker() {
         UtilDateModel model = new UtilDateModel();
         Properties p = new Properties();
